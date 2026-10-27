@@ -1,0 +1,42 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Physics",
+      "type": "process",
+      "command": "C:/msys64/ucrt64/bin/g++.exe",
+      "args": [
+        "-std=c++17",
+        "-g",
+        "${workspaceFolder}/main.cpp",
+        "-IC:/msys64/ucrt64/include",
+        "-LC:/msys64/ucrt64/lib",
+        "-lsfml-graphics",
+        "-lsfml-window",
+        "-lsfml-system",
+        "-o",
+        "${workspaceFolder}/PhysicsApp.exe"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PATH": "C:/msys64/ucrt64/bin;${env:PATH}"
+        }
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Run Physics",
+      "type": "process",
+      "command": "${workspaceFolder}/PhysicsApp.exe",
+      "dependsOn": "Build Physics",
+      "dependsOrder": "sequence",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PATH": "C:/msys64/ucrt64/bin;${env:PATH}"
+        }
+      }
+    }
+  ]
+}

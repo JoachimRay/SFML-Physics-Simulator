@@ -1,33 +1,18 @@
-#include <iostream>
 #include <cmath>
+#include <optional>
+#include <string>
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
 
 #define gravity 9.81
 
-using namespace std;
-
-void CirclePosition(sf::RenderWindow &Physics, sf:: Event &event, sf::Text &Ctext, float &radius, float &X, float &Y, sf::CircleShape &Circle)
+void CirclePosition(float &radius, float &X, float &Y, const sf::CircleShape &Circle)
 {
-
-
     sf::Vector2f position = Circle.getPosition(); // Gets the X & Y position
-
-
-
     radius = Circle.getRadius(); // Gets the Radius
-
-    string Position = "X: " + to_string(position.x) + " Y: " + to_string(position.y); // Displays the Position of X & Y
-
     X = position.x + radius; // Add radius to Make it Center
     Y = position.y + radius;
-
-    Ctext.setString(Position); // Print the text
-    Ctext.setPosition(500,50); // position of text
-    Physics.draw(Ctext); // draws the text
-
-
 }
 
 void Pythagorean(float Radius, float CircleX, float CircleY, float MouseX, float MouseY, sf::CircleShape &Circle)
@@ -125,32 +110,24 @@ sf::RenderWindow Physics(sf::VideoMode({800, 600}), "Physics Ball"); // Window
 sf::RectangleShape Background(sf::Vector2f(800,600)); // Background
 Background.setFillColor(sf::Color::Black); // Background Color
 
-sf::Event event;
-sf:: Font font;
-sf:: Text text;
-sf:: Text Ctext;
-sf:: Clock clock;
-
-if(!font.loadFromFile("C:\\Users\\joach_a5sww\\OneDrive\\Documents\\(C++)\\SFML\\Physics\\Fonts\\arial_mt_black\\ARIBL0.ttf")) // location of the font
-{
-    cout << "Faile to load!" << endl; // displays in terminal
+sf::Font font;
+if (!font.openFromFile("Fonts/arial_mt_black/ARIBL0.ttf"))
     return 1;
-}
 
-text.setFont(font);
-text.setCharacterSize(15);
+sf::Text text(font, "", 15);
+sf::Text Ctext(font, "", 15);
 text.setFillColor(sf::Color::White);
-text.setPosition(50,50);
-
-Ctext.setFont(font);
-Ctext.setCharacterSize(15);
 Ctext.setFillColor(sf::Color::White);
+text.setPosition({50.f, 50.f});
+Ctext.setPosition({500.f, 50.f});
+
+sf:: Clock clock;
 
 
 sf::Vector2i Dragoffset; // position of drag
 sf::CircleShape Circle(50); // Circle Size
 Circle.setFillColor(sf::Color::Red); // Circle Color
-Circle.setPosition(350,250); // Circle Position
+Circle.setPosition({350.f, 250.f}); // Circle Position
 
 float Circleradius = 0;
 float CircleX = 0;
@@ -170,13 +147,8 @@ while(Physics.isOpen())
 
     Physics.clear(); // Clears the screen per frame
     Physics.draw(Background); // draw background
-    Physics.draw(text); // draws the text
-
-
     sf::Vector2i position = sf::Mouse::getPosition(Physics); // Gets position of mouse
 
-
-    string PositionText = "X: " + to_string(position.x) + " Y: " + to_string(position.y); // Displays the current position
 
     float DeltaTime = clock.restart().asSeconds() * 10.0f;
 
@@ -184,23 +156,27 @@ while(Physics.isOpen())
     float MouseY = position.y;
 
 
-    CirclePosition(Physics, event, Ctext, Circleradius, CircleX, CircleY, Circle); // Gets data of circle
+    CirclePosition(Circleradius, CircleX, CircleY, Circle); // Gets data of circle
     Pythagorean(Circleradius, CircleX, CircleY, MouseX, MouseY, Circle); // Checks distance of radius and mouse
 
 
 
-    while(Physics.pollEvent(event))
+    while (const std::optional event = Physics.pollEvent())
     {
-    if(event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
-    {
+        if (event->is<sf::Event::Closed>())
+            Physics.close();
 
-        Dragging(Circle, position, Circleradius, Dragoffset, Clicked);
-    }
+        if (const auto* pressed = event->getIf<sf::Event::MouseButtonPressed>())
+        {
+            if (pressed->button == sf::Mouse::Button::Left)
+                Dragging(Circle, position, Circleradius, Dragoffset, Clicked);
+        }
 
-    if(event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left)
-    {
-        Clicked = false;
-    }
+        if (const auto* released = event->getIf<sf::Event::MouseButtonReleased>())
+        {
+            if (released->button == sf::Mouse::Button::Left)
+                Clicked = false;
+        }
     }
 
 
@@ -217,9 +193,13 @@ while(Physics.isOpen())
 
 
     Physics.draw(Circle);
-    Physics.draw(Ctext);
-    text.setString(PositionText);
+    const std::string mousePositionText = "X: " + std::to_string(position.x) + " Y: " + std::to_string(position.y);
+    const std::string circlePositionText = "X: " + std::to_string(static_cast<int>(CircleX)) +
+                                           " Y: " + std::to_string(static_cast<int>(CircleY));
+    text.setString(mousePositionText);
+    Ctext.setString(circlePositionText);
     Physics.draw(text);
+    Physics.draw(Ctext);
     Physics.display();
 }
 
